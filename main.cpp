@@ -8,7 +8,7 @@
 #include "display.h"
 #include "benchmark.h"
 #include "platformgl.h"
-
+#include "ppm.h"
 
 void usage(const char* progname) {
     printf("Usage: %s [options] imageFilename\n", progname);
@@ -75,6 +75,8 @@ int main(int argc, char** argv)
         CheckBenchmark(compressor, cudaCompressor);
     }
     else {
+        Image im(0, 0);
+        readPPMImage(imageFilename.c_str(), &im);
         if (useRefCompressor)
             compressor = new RefCompressor(imageFilename);
         else

@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <math.h>
 #include <algorithm>
 
@@ -7,6 +10,40 @@
 #include "util.h"
 
 
+
+void readPPMImage(const char *filename, const Image* image) {
+    std::ifstream f(filename);
+
+    std::string magic;
+    long width = 0;
+    long height = 0;
+    long pixMax = 0;
+
+    f >> magic >> width >> height >> pixMax;
+
+    if (f && magic == "P6" && width > 0 && height > 0 && pixMax > 0 && pixMax <= 255) {
+        image = new Image(width, height);
+    } else {
+        std::cout << "Invalid PPM image" << std::endl;
+        return;
+    }
+
+    int r, g, b;
+    int numPixels = width * height;
+    float* ptr = image->data;
+    for (int i = 0; i < numPixels; i++) {
+        f >> r >> g >> b;
+        if(!f) {
+            std::cout << "Invalid PPM image" << std::endl;
+            return;
+        }
+        ptr[0] = r;
+        ptr[1] = g;
+        ptr[2] = b;
+        ptr[3] = 1;
+        ptr += 4;
+    }
+}
 
 // writePPMImage --
 //
@@ -23,7 +60,7 @@ void writePPMImage(const Image* image, const char *filename)
 
     // write ppm header
     fprintf(fp, "P6\n");
-    fprintf(fp, "%d %d\n", image->width, image->height);
+    fprintf(fp, "%d %d ", image->width, image->height);
     fprintf(fp, "255\n");
 
     for (int j=image->height-1; j>=0; j--) {
