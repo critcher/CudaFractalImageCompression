@@ -12,7 +12,7 @@ private:
     std::string imageFilename;
 
 public:
-    RefCompressor(const std::string& imageFilename);
+    RefCompressor(const std::string& imageFilename, int rangeSize, int domainSize);
     virtual ~RefCompressor();
     void compress();
     void saveToFile(const std::string& filename);
