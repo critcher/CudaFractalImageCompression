@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Parallel Fractal Image Compression</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/one-page-wonder.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Parallel Fractal Image Compression</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#about">About</a>
+                    </li>
+                    <li>
+                        <a href="#proposal">Proposal</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Full Width Image Header -->
+    <header class="header-image">
+        <div class="headline">
+            <div class="container">
+                <h2>Parallel Fractal Image Compression</h2>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="container">
+        <hr class="featurette-divider">
+
+        <!-- First Featurette -->
+        <div class="featurette" id="about">
+            <h2 class="featurette-heading">15-418 Final Project
+                <span class="text-muted">Spring 2016</span>
+            </h2>
+            <h3>Clayton Ritcher and Nora Shoemaker</h3>
+
+            <p class="lead">We are going to create a parallelized implementation of fractal image compression. Because of the relatively fast speed of decoding, we will focus on a CUDA-based encoding implementation only. </p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <!-- Second Featurette -->
+        <div class="featurette" id="proposal">
+            <h2 class="featurette-heading">Background
+            </h2>
+            <p class="lead">Fractal Image Compression had its heyday in the early 90s (even being chosen as the image compression algorithm for all images in Microsoft’s Encarta Encyclopedia <a href="http://www.math.psu.edu/tseng/class/Fractals.html" target="_blank">[link]</a>) but it was never able to eclipse JPEG. Its main disadvantage compared to JPEG compression is high computation time for compression, which is what we would like to address for this project.</p>
+
+            <p class="lead">The key insight behind fractal image compression is that self similarity exists in many images, and that this self similarity can be exploited to compress an image. Specifically, fractal image compression looks to find affine transformations from chunks of an image, called domain blocks, to every smaller chunk of the image, called range blocks (which partition the image).These transformations form an iterated function system <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">(IFS)</a> on the image, and if the transformations are chosen correctly, this IFS will converge to the original image for any input. The compressed image, then, is just a file representing the IFS.</p>
+
+            <p class="lead"><a href="https://en.wikipedia.org/wiki/Collage_theorem" target="_blank">The Collage Theorem</a> describes how we can find the appropriate affine transformations to make up our IFS. In layman’s terms, this theorem says that the best way to find the desired affine transformation for a range block is to find the transformation-domain block pair whose result is most similar to the range block. Finding this mapping for every range block defines the IFS, and thus the compressed image.</p>
+
+            <p class="lead">Decoding the image, which we will not be focusing on for this project, simply involves iterating the IFS on any input image until it converges. The image it converges to will be the original image before compression (with some loss).</p>
+
+            <img class=" img-responsive pull-left" src="images/monkeys.JPG">
+            <p><a href="http://www.cs.northwestern.edu/~agupta/_projects/image_processing/web/FractalImageCompression/" target="_blank">Picture source</a>
+
+            </p>
+
+            <p class="lead">We believe the image encoding can be heavily parallelized. The first step of the encoding is to create a codebook, or set of transformed domain blocks. This can be as simple as partitioning the image into squares, and computing each of the 8 affine transformations possible for that square (rotations of 0, 90, 180, and 270 degrees on the normal and mirrored versions of the block). All of these transformations can be computed in parallel.</p>
+
+            <p class="lead">Next, the best element of the codebook must be computed for each range block. This involves comparing each range block to each domain block using some distance metric, and choosing the codebook element that minimizes this distance (Collage Theorem). This, again can be parallelized -- at least across range blocks, and possibly across range block-codebook element pairs (to compute distances) with a final min function on the distances for each range block.</p>
+
+            <p class="lead">A further improvement to the project could involve adding support for color images, which naively could be looked at as compressing each channel as a greyscale image (which could be done in parallel, as well). Additionally, we could investigate methods for pruning the codebook, so as to decrease the number of possible transformations to be considered for each range block. This could also present an opportunity for parallelization.</p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <!-- Third Featurette -->
+        <div class="featurette" >
+            <h2 class="featurette-heading">The Challenge
+            </h2>
+            <p class="lead">While most of the base algorithm described has clear parallelism, there are still several unanswered questions. For instance, when computing the codebook, there are several way we could attack the problem. One way is to only parallelize across domain blocks, having a single CUDA thread compute all 8 transformations for the block. Another way is to use a CUDA thread for each block-transformation pair. While this is more parallelized, it also requires half of the transformation threads to redundantly compute the mirror of the block. A final approach could be to still parallelize across blocks and transformations but use shared memory to reduce the redundant calculations.</p>
+
+            <p class="lead">Other challenges include determining how to parallelize the determination of the best codebook element for each range block. Again, there are multiple possible dimensions to parallelize across, each with their own tradeoffs.</p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">Resources
+            </h2>
+            <p class="lead">For our project, we plan to start both the sequential and the CUDA implementations from scratch, though we both have some experience with the algorithm from a math class. Additionally, there are several papers about fractal image compression available on the internet.</p>
+
+            <p class="lead">We plan to use either the GTX 780 GPUs in the GHC clusters, or one of the more powerful GPUs in the latedays cluster for our project.<p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">Goals and Deliverables
+            </h2>
+            <p class="lead">Goals:</p>
+            <ul class="lead">
+                <li> Sequential fractal image compression for greyscale images
+                </li>
+                <li>Sequential fractal image decompression for greyscale images
+                </li>
+                <li>CUDA fractal image compression for greyscale images
+                </li>
+            </ul>
+            <p class="lead">Stretch Goals:</p>
+            <ul class="lead">
+                <li>Sequential/CUDA fractal image compression for color images
+                </li>
+                <li>Codebook pruning (see background section)
+                </li>
+            </ul>
+
+            <p class="lead">For our demo we plan to show analysis of our CUDA implementation versus the sequential version. This would include speedups for different image, range block, and domain block sizes. Additionally, if the implementation is fast enough, we could compress images taken at the demo, and show the decompression iterations (similar to the monkeys above).</p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">Platform Choice
+            </h2>
+            <p class="lead">We believe GPUs are the correct platform for our project because many steps of our problem can be broken down into a very large number of independent pieces, which suits GPU architectures well.</p>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">Schedule
+            </h2>
+            <p class="lead">Week of April 4th:</p>
+            <ul class="lead">
+                <li>Define our compressed file format</li>
+                <li>Setup git repo</li>
+                <li>Setup environment/build system</li>
+            </ul>
+            <p class="lead">Week of April 11th:</p>
+            <ul class="lead">
+                <li>Sequential codebook generation</li>
+                <li>Sequential transformation choosing</li>
+            </ul>
+            <p class="lead">Week of April 18th:</p>
+            <ul class="lead">
+                <li>Sequential decompression</li>
+                <li>CUDA codebook generation</li>
+            </ul>
+            <p class="lead">Week of April 25th:</p>
+            <ul class="lead">
+                <li>CUDA transformation choosing</li>
+                <li>Begin analysis</li>
+            </ul>
+            <p class="lead">Week of May 2nd:</p>
+            <ul class="lead">
+                <li>Finish analysis</li>
+                <li>Padding/Stretch goals</li>
+            </ul>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <!-- Footer -->
+        <footer>
+        </footer>
+
+    </div>
+    <!-- /.container -->
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
