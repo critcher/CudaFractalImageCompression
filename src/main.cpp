@@ -68,22 +68,23 @@ int main(int argc, char** argv)
     if (checkCorrectness) {
         Compressor* cudaCompressor;
 
-        compressor = new RefCompressor(imageFilename);
-        cudaCompressor = new CudaCompressor(imageFilename);
+        compressor = new RefCompressor(imageFilename, 1, 1);
+        cudaCompressor = new CudaCompressor(imageFilename, 1, 1);
 
         // Check the correctness
         CheckBenchmark(compressor, cudaCompressor);
+        delete compressor;
+        delete cudaCompressor;
     }
     else {
-        Image im(0, 0);
-        readPPMImage(imageFilename.c_str(), &im);
         if (useRefCompressor)
-            compressor = new RefCompressor(imageFilename);
+            compressor = new RefCompressor(imageFilename, 1, 1);
         else
-            compressor = new CudaCompressor(imageFilename);
+            compressor = new CudaCompressor(imageFilename, 1, 1);
 
         glutInit(&argc, argv);
         startCompressionWithDisplay(compressor);
+        delete compressor;
     }
 
     return 0;

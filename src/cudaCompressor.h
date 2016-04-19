@@ -12,7 +12,7 @@ private:
     std::string imageFilename;
 
 public:
-    CudaCompressor(const std::string& imageFilename);
+    CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize);
     virtual ~CudaCompressor();
     void compress();
     void saveToFile(const std::string& filename);
