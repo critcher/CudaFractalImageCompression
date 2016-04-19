@@ -50,6 +50,9 @@
                     <li>
                         <a href="#proposal">Proposal</a>
                     </li>
+                    <li>
+                        <a href="#checkpoint">Checkpoint</a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -167,30 +170,66 @@
             </h2>
             <p class="lead">Week of April 4th:</p>
             <ul class="lead">
-                <li>Define our compressed file format</li>
-                <li>Setup git repo</li>
-                <li>Setup environment/build system</li>
+                <li>Define our compressed file format <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/docs/CompressedFileFormatSpec.md" target="_blank">DONE! (link)</a></li>
+                <li>Decide on input/output file format (pre/post compression/decompression) DONE! (PPM)
+                <li>Setup git repo <a href="https://github.com/critcher/CudaFractalImageCompression" target="_blank">DONE! (link)</a></li>
+                <li>Setup environment/build system <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/Makefile" target="_blank">DONE! (link)</a></li>
+                <li>Setup benchmarking and testing harness modelled off of Assignment 2 structure <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/benchmark.cpp" target="_blank">DONE! (link)</a></li>
             </ul>
             <p class="lead">Week of April 11th:</p>
             <ul class="lead">
+                <li>PPM Image reader <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/ppm.cpp" target="_blank">DONE! (link)</a></li>
+                <li>Fix PPM Image writer from Assignment 2 <a href="https://github.com/critcher/CudaFractalImageCompression/commit/4de6aa249697b9d5747bcc7af9e030109235415e" target="_blank">DONE! (link)</a></li>
+                <li>Sequential resize of image <a href="https://github.com/critcher/CudaFractalImageCompression/commit/fd469c14af665035dbaad62922ec57700fa85069" target="_blank">DONE! (link)</a></li>
                 <li>Sequential codebook generation</li>
-                <li>Sequential transformation choosing</li>
             </ul>
             <p class="lead">Week of April 18th:</p>
             <ul class="lead">
-                <li>Sequential decompression</li>
-                <li>CUDA codebook generation</li>
+                <li>Sequential transformation choosing (Clayton)</li> 
+                <li>Sequential decompression (Nora)</li>
+                <li>CUDA resize of image (Clayton)</li>
+                <li>CUDA codebook generation (Nora)</li>
             </ul>
             <p class="lead">Week of April 25th:</p>
             <ul class="lead">
-                <li>CUDA transformation choosing</li>
-                <li>Begin analysis</li>
+                <li>CUDA transformation choosing (Nora)</li>
+                <li>Begin analysis (Clayton)</li>
             </ul>
             <p class="lead">Week of May 2nd:</p>
             <ul class="lead">
-                <li>Finish analysis</li>
-                <li>Padding/Stretch goals</li>
+                <li>Finish analysis (Clayton)</li>
+                <li>Padding/Stretch goals (Both)</li>
             </ul>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" id="checkpoint" >
+            <h2 class="featurette-heading">Checkpoint
+            </h2>
+            <h4>Defining a Compressed File Format</h4>
+            <p>
+                It took us quite a bit of time to think about, formalize, and document the compressed file format that we plan on using for this assignment. Our full specification and some of our thoughts on it can be found in our <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/docs/CompressedFileFormatSpec.md" target="_blank">docs</a>.
+            <h4>Structuring our Project and Setting up our Environment</h4>
+            <p>
+                So far, we have spent a lot of time structuring our project and generally setting up our development environment. The structure of our project mimmics Assignment 2's structure, but most of the Assignment 2 code had to be scrapped. The structure is basically the only thing that makes our project similar to Assignment 2, the actual implementation that we are creating is quite different. The benchmarking process was something that we really wanted for this assignment since we will be comparing a sequential implementation to many paralled implementations. We were able to successfully build and run the project. 
+            </p>
+            <h4>Defining Classes and APIs</h4>
+            <p >
+                In order to start implementation, we had to define a set of classes and APIs that we would be working with. We defined APIs for our <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/compressor.h" target="_blank">Compressor</a> and <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/decompressor.h" target="_blank">Decompressor</a>. 
+            </p>
+            <h4>Redesigning the Image Representation</h4>
+            <p>
+                Additionally, we have redesigned the <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/image.h" target="_blank">Image</a> representation from Assignment 2 and have begun to develop our own compressed image representation (or at least the data needed to write this). We created a <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/fractal.h" target="_blank">fractal.h</a> file where we hope to store the fractal image data structures that can be shared across our sequential and parallel implementations. We plan on having our representations of Domain/Range Blocks be wrappers of the existing Image class so that transformations can be defined and applied at the Image level. We have already created a <a href="https://github.com/critcher/CudaFractalImageCompression/commit/fd469c14af665035dbaad62922ec57700fa85069" target="_blank">resize</a> function and plan to create more. 
+            </p> 
+            <h4>Codebook Generation</h4>
+            <p>
+                At this point, we are working on sequential codebook generation. We were a caught a bit off guard by the work needed to read in input files and the amount of time it would take parse these and create Image objects to represent them. After some work, we were finally able to read in a PPM file and display it correctly using our own hacked version of the Assignment 2 display code. 
+            </p>
+            <h4>Schedule</h4>
+            <p>
+                We updated our schedule to reflect the work we have done so far and the work we plan on doing in the future. We are mostly pair programming this project because it is how we have successfully worked on the previous assignments for this class. For this reason, we are a bit hesitant to name owners of various tasks, but we know it's what you guys want to see so we have put them down. New tasks have been added to our schedule to reflect some of the unexpected work we accomplished and also the new work we realized we will need to do in the future. We hope to be finished with a sequential implementation and on to a paralled implementation soon.
+            </p>
         </div>
 
         <hr class="featurette-divider">
