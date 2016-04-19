@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     }
     else {
         if (useRefCompressor)
-            compressor = new RefCompressor(imageFilename, 1, 1);
+            compressor = new RefCompressor(imageFilename, 16, 32);
         else
             compressor = new CudaCompressor(imageFilename, 1, 1);
 
