@@ -21,7 +21,7 @@ void readPPMImage(const char *filename, const Image* image) {
 
     f >> magic >> width >> height >> pixMax;
 
-    if (f && magic == "P6" && width > 0 && height > 0 && pixMax > 0 && pixMax <= 255) {
+    if (f && magic == "P3" && width > 0 && height > 0 && pixMax > 0 && pixMax <= 255) {
         image = new Image(width, height);
     } else {
         std::cout << "Invalid PPM image" << std::endl;
