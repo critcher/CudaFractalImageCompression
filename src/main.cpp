@@ -73,10 +73,10 @@ int main(int argc, char** argv)
 
         // Check the correctness
         CheckBenchmark(compressor, cudaCompressor);
+        delete compressor;
+        delete cudaCompressor;
     }
     else {
-        Image im(0, 0);
-        readPPMImage(imageFilename.c_str(), &im);
         if (useRefCompressor)
             compressor = new RefCompressor(imageFilename);
         else
@@ -84,6 +84,7 @@ int main(int argc, char** argv)
 
         glutInit(&argc, argv);
         startCompressionWithDisplay(compressor);
+        delete compressor;
     }
 
     return 0;
