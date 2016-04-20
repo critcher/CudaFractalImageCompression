@@ -30,19 +30,15 @@ Image* readPPMImage(const char *filename) {
     }
 
     int r, g, b;
-    int numPixels = width * height;
-    float* ptr = image->data;
-    for (int i = 0; i < numPixels; i++) {
-        f >> r >> g >> b;
-        if(!f) {
-            std::cerr << "Invalid PPM image" << std::endl;
-            return NULL;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            f >> r >> g >> b;
+            if(!f) {
+                std::cerr << "Invalid PPM image" << std::endl;
+                return NULL;
+            }
+            image->set(x, y, r, g, b, 255);
         }
-        ptr[0] = r;
-        ptr[1] = g;
-        ptr[2] = b;
-        ptr[3] = 255;
-        ptr += 4;
     }
     return image;
 }
@@ -59,16 +55,11 @@ void writePPMImage(const Image* image, const char *filename)
 
     f << "P3" << sep << image->width << sep << image->height << sep << 255 << sep << "\n";
 
-    int r, g, b;
-    int numPixels = image->width * image->height;
-    float* ptr = image->data;
-    for (int i = 0; i < numPixels; i++) {
-        r = ptr[0];
-        g = ptr[1];
-        b = ptr[2];
-        
-        f << r << sep << g << sep << b << "\n";
-        
-        ptr += 4;
+    int r, g, b, a;
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            image->get(x, y, &r, &g, &b, &a);
+            f << r << sep << g << sep << b << "\n";
+        }
     }
 }

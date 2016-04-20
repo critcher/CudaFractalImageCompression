@@ -8,13 +8,23 @@ struct Image {
     Image(int w, int h) {
         width = w;
         height = h;
-        data = new float[4 * width * height];
+        data = new int[4 * width * height];
+        xOffset = 0;
+        yOffset = 0;
     }
 
-    void clear(float r, float g, float b, float a) {
+    Image(int x, int y, int w, int h, int* data) {
+        xOffset = x;
+        yOffset = y;
+        width = w;
+        height = h;
+        this->data = data;
+    }
+
+    void clear(int r, int g, int b, int a) {
 
         int numPixels = width * height;
-        float* ptr = data;
+        int* ptr = data;
         for (int i=0; i<numPixels; i++) {
             ptr[0] = r;
             ptr[1] = g;
@@ -24,16 +34,20 @@ struct Image {
         }
     }
 
-    void set(int x, int y, float r, float g, float b, float a) {
-        float* ptr = data + ((width * y) + x) * 4;
+    void set(int x, int y, int r, int g, int b, int a) {
+        x += xOffset;
+        y += yOffset;
+        int* ptr = data + ((width * y) + x) * 4;
         ptr[0] = r;
         ptr[1] = g;
         ptr[2] = b;
         ptr[3] = a;
     }
 
-    void get(int x, int y, float* r, float* g, float* b, float* a) {
-        float* ptr = data + ((width * y) + x) * 4;
+    void get(int x, int y, int* r, int* g, int* b, int* a) const {
+        x += xOffset;
+        y += yOffset;
+        int* ptr = data + ((width * y) + x) * 4;
         *r = ptr[0];
         *g = ptr[1];
         *b = ptr[2];
@@ -46,7 +60,7 @@ struct Image {
         float xScale = ((float) width) / newW;
         float yScale = ((float) height) / newH;
 
-        float r, g, b, a;
+        int r, g, b, a;
         for (int y = 0; y < newH; y++) {
             for (int x = 0; x < newW; x++) {
                 int oldX = xScale * x;
@@ -58,9 +72,32 @@ struct Image {
         return im;
     }
 
+    int dist(Image* other, int channel) {
+        if (width != other->width || height != other->height) {
+            std::cerr << "Image sizes do not match" << std::endl;
+            return -1;
+        }
+
+        int d = 0;
+        int colors[4];
+        int otherColors[4];
+        int diff;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                this->get(x, y, colors, colors+1, colors+2, colors+3);
+                other->get(x, y, otherColors, otherColors+1, otherColors+2, otherColors+3);
+                diff = colors[channel] - otherColors[channel];
+                d += diff * diff;
+            }
+        }
+        return d;
+    }
+
     int width;
     int height;
-    float* data;
+    int xOffset;
+    int yOffset;
+    int* data;
 };
 
 

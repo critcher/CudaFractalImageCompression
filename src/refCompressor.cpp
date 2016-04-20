@@ -8,7 +8,7 @@
 CodebookElement RefCompressor::generateIdentity(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -26,7 +26,7 @@ CodebookElement RefCompressor::generateIdentity(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateRotate90(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -44,7 +44,7 @@ CodebookElement RefCompressor::generateRotate90(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateRotate180(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -62,7 +62,7 @@ CodebookElement RefCompressor::generateRotate180(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateRotate270(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -80,7 +80,7 @@ CodebookElement RefCompressor::generateRotate270(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateFlip(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -98,7 +98,7 @@ CodebookElement RefCompressor::generateFlip(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateFRot90(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -116,7 +116,7 @@ CodebookElement RefCompressor::generateFRot90(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateFRot180(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -134,7 +134,7 @@ CodebookElement RefCompressor::generateFRot180(int x, int y, Image* fullImg) {
 CodebookElement RefCompressor::generateFRot270(int x, int y, Image* fullImg) {
     Image* im = new Image(rangeSize, rangeSize);
     float scale = ((float) rangeSize) / domainSize;
-    float r, g, b, a;
+    int r, g, b, a;
     for (int curY = 0; curY < rangeSize; curY++) {
         for (int curX = 0; curX < rangeSize; curX++) {
             fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
@@ -163,16 +163,6 @@ void RefCompressor::generateCodebookEelements() {
             codebook.push_back(generateRotate180(x, y, smallImg));
             codebook.push_back(generateRotate90(x, y, smallImg));
             codebook.push_back(generateIdentity(x, y, smallImg));
-            if (x == 256 && y == 256) {
-                writePPMImage(codebook[codebook.size() - 1].imChunk, "chunk.ppm");
-                writePPMImage(codebook[codebook.size() - 2].imChunk, "chunk2.ppm");
-                writePPMImage(codebook[codebook.size() - 3].imChunk, "chunk3.ppm");
-                writePPMImage(codebook[codebook.size() - 4].imChunk, "chunk4.ppm");
-                writePPMImage(codebook[codebook.size() - 5].imChunk, "chunk5.ppm");
-                writePPMImage(codebook[codebook.size() - 6].imChunk, "chunk6.ppm");
-                writePPMImage(codebook[codebook.size() - 7].imChunk, "chunk7.ppm");
-                writePPMImage(codebook[codebook.size() - 8].imChunk, "chunk8.ppm");
-            }
         }
     }
     delete smallImg;
