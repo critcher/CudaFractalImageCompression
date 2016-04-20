@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-enum Transform {identity, rot90, rot180, rot270, flip, frot90, frot180, frot270};
+enum Transform {identity=0, rot90=1, rot180=2, rot270=3, flip=4, frot90=5, frot180=6, frot270=7};
 
 struct CodebookElement {
     // Top left coordinates in image

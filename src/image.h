@@ -26,7 +26,6 @@ struct Image {
 
     void set(int x, int y, float r, float g, float b, float a) {
         float* ptr = data + ((width * y) + x) * 4;
-        std::cout << width << std::endl;
         ptr[0] = r;
         ptr[1] = g;
         ptr[2] = b;
