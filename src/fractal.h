@@ -13,4 +13,13 @@ struct CodebookElement {
     Transform transform;
 };
 
+struct RangeBlockInfo {
+    // Top left coordinates in image
+    int x;
+    int y;
+    CodebookElement* codebookElement;
+    int brightnessOffset;
+    float contrastFactor;
+};
+
 #endif

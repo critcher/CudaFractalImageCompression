@@ -15,6 +15,7 @@ private:
     int rangeSize;
     int domainSize;
     std::vector<CodebookElement> codebook;
+    std::vector<RangeBlockInfo> rangeBlockMapping;
 
 
     void generateCodebookEelements();
@@ -26,6 +27,7 @@ private:
     CodebookElement generateFRot90(int x, int y, Image* fullImg);
     CodebookElement generateFRot180(int x, int y, Image* fullImg);
     CodebookElement generateFRot270(int x, int y, Image* fullImg);
+    void getBestMapping();
 
 public:
     RefCompressor(const std::string& imageFilename, int rangeSize, int domainSize);

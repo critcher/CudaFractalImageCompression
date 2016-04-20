@@ -168,6 +168,50 @@ void RefCompressor::generateCodebookEelements() {
     delete smallImg;
 }
 
+void RefCompressor::getBestMapping() {
+    int totalD = 0;
+    for (int y = 0; y < image->height; y += rangeSize) {
+        for (int x = 0; x < image->width; x += rangeSize) {
+            Image rangeBlock(x, y, rangeSize, rangeSize, image->data, image->width, image->height);
+            int minDist = 0;
+            int minElement = -1;
+            float bestContrast;
+            int bestBrightness;
+            for (unsigned int i = 0; i < codebook.size(); ++i) {
+
+                // Just use red channel for now (assuming greyscale image)
+                int domNorm = codebook[i].imChunk->dot(codebook[i].imChunk, 0);
+                float con;
+                if (domNorm == 0) {
+                    con = 0;
+                } else {
+                    con = ((float) rangeBlock.dot(codebook[i].imChunk, 0)) / domNorm;
+                }
+                int bright = rangeBlock.getAvgBrightness(0) - con * codebook[i].imChunk->getAvgBrightness(0);
+                Image* newDom = codebook[i].imChunk->adjustColor(bright, con, 0);
+                int curDist = newDom->dist(&rangeBlock, 0);
+                delete newDom;
+
+                if (minElement < 0 || curDist < minDist) {
+                    minElement = i;
+                    minDist = curDist;
+                    bestContrast = con;
+                    bestBrightness = bright;
+                }
+            }
+            RangeBlockInfo rb;
+            rb.x = x;
+            rb.y = y;
+            rb.codebookElement = &(codebook[minElement]);
+            rb.brightnessOffset = bestBrightness;
+            rb.contrastFactor = bestContrast;
+            totalD += minDist;
+            rangeBlockMapping.push_back(rb);
+        }
+    }
+    std::cout << "Total dist: " << totalD << std::endl;
+}
+
 RefCompressor::RefCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
     image = readPPMImage(imageFilename.c_str());
     this->imageFilename = imageFilename;
@@ -190,6 +234,7 @@ void RefCompressor::compress() {
 
     generateCodebookEelements();
     std::cout << "generated " << codebook.size() << " codebook elements" << std::endl;
+    getBestMapping();
 }
 
 void RefCompressor::saveToFile(const std::string& filename) {
