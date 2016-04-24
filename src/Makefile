@@ -5,7 +5,7 @@ CU_FILES   := cudaCompressor.cu
 CU_DEPS    :=
 
 CC_FILES   := main.cpp display.cpp benchmark.cpp refCompressor.cpp \
-              ppm.cpp refDecompressor.cpp
+              ppm.cpp refDecompressor.cpp compressedFile.cpp fractal.cpp
 
 LOGS	   := logs
 
@@ -38,7 +38,8 @@ LDFRAMEWORKS := $(addprefix -framework , $(FRAMEWORKS))
 NVCC=nvcc
 
 OBJS=$(OBJDIR)/main.o $(OBJDIR)/display.o $(OBJDIR)/benchmark.o $(OBJDIR)/refCompressor.o \
-     $(OBJDIR)/cudaCompressor.o $(OBJDIR)/ppm.o $(OBJDIR)/refDecompressor.o
+     $(OBJDIR)/cudaCompressor.o $(OBJDIR)/ppm.o $(OBJDIR)/refDecompressor.o $(OBJDIR)/compressedFile.o \
+     $(OBJDIR)/fractal.o
 
 
 .PHONY: dirs clean

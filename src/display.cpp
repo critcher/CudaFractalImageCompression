@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 
 #include "display.h"
 #include "image.h"
@@ -63,6 +64,7 @@ void handleDisplay() {
 //
 // Keyboard event handler
 void handleKeyPress(unsigned char key, int x, int y) {
+    std::cout << "button: " << key << std::endl;
     switch (key) {
     case 'q':
     case 'Q':
@@ -76,6 +78,7 @@ void handleKeyPress(unsigned char key, int x, int y) {
 
 void renderPicture() {
     if (gDisplay.updateDecomp) {
+        std::cout << "updating" << std::endl;
         gDisplay.decompressor->step();
         gDisplay.updateDecomp = false;
     }

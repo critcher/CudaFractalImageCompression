@@ -4,17 +4,12 @@
 #include "refCompressor.h"
 #include "ppm.h"
 #include "image.h"
+#include "compressedFile.h"
 
 CodebookElement RefCompressor::generateIdentity(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(curX, curY, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    identityTransform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -24,15 +19,9 @@ CodebookElement RefCompressor::generateIdentity(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateRotate90(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(rangeSize - curY - 1, curX, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    rot90Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -42,15 +31,9 @@ CodebookElement RefCompressor::generateRotate90(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateRotate180(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(rangeSize - curX - 1, rangeSize - curY - 1, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    rot180Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -60,15 +43,9 @@ CodebookElement RefCompressor::generateRotate180(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateRotate270(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(curY, rangeSize - curX - 1, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    rot270Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -78,15 +55,9 @@ CodebookElement RefCompressor::generateRotate270(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateFlip(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(rangeSize - curX - 1, curY, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    flipTransform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -96,15 +67,9 @@ CodebookElement RefCompressor::generateFlip(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateFRot90(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(rangeSize - curY - 1, rangeSize - curX - 1, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    frot90Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -114,15 +79,9 @@ CodebookElement RefCompressor::generateFRot90(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateFRot180(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(curX, rangeSize - curY - 1, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    frot180Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -132,15 +91,9 @@ CodebookElement RefCompressor::generateFRot180(int x, int y, Image* fullImg) {
 }
 
 CodebookElement RefCompressor::generateFRot270(int x, int y, Image* fullImg) {
-    Image* im = new Image(rangeSize, rangeSize);
-    float scale = ((float) rangeSize) / domainSize;
-    int r, g, b, a;
-    for (int curY = 0; curY < rangeSize; curY++) {
-        for (int curX = 0; curX < rangeSize; curX++) {
-            fullImg->get(curX + x * scale, curY + y * scale, &r, &g, &b, &a);
-            im->set(curY, curX, r, g, b, a);
-        }
-    }
+    Image* im = new Image(compIm.rangeSize, compIm.rangeSize);
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
+    frot270Transform(x, y, fullImg, scale, im);
     CodebookElement cbe;
     cbe.x = x;
     cbe.y = y;
@@ -150,11 +103,11 @@ CodebookElement RefCompressor::generateFRot270(int x, int y, Image* fullImg) {
 }
 
 void RefCompressor::generateCodebookEelements() {
-    float scale = ((float) rangeSize) / domainSize;
+    float scale = ((float) compIm.rangeSize) / compIm.domainSize;
     Image* smallImg = image->resize(scale * image->width, scale * image->height);
 
-    for (int x = 0; x < image->width; x += domainSize) {
-        for (int y = 0; y < image->height; y += domainSize) {
+    for (int x = 0; x < image->width; x += compIm.domainSize) {
+        for (int y = 0; y < image->height; y += compIm.domainSize) {
             codebook.push_back(generateFRot270(x, y, smallImg));
             codebook.push_back(generateFRot180(x, y, smallImg));
             codebook.push_back(generateFRot90(x, y, smallImg));
@@ -170,9 +123,9 @@ void RefCompressor::generateCodebookEelements() {
 
 void RefCompressor::getBestMapping() {
     int totalD = 0;
-    for (int y = 0; y < image->height; y += rangeSize) {
-        for (int x = 0; x < image->width; x += rangeSize) {
-            Image rangeBlock(x, y, rangeSize, rangeSize, image->data, image->width, image->height);
+    for (int y = 0; y < image->height; y += compIm.rangeSize) {
+        for (int x = 0; x < image->width; x += compIm.rangeSize) {
+            Image rangeBlock(x, y, compIm.rangeSize, compIm.rangeSize, image->data, image->width, image->height);
             int minDist = 0;
             int minElement = -1;
             float bestContrast;
@@ -206,7 +159,7 @@ void RefCompressor::getBestMapping() {
             rb.brightnessOffset = bestBrightness;
             rb.contrastFactor = bestContrast;
             totalD += minDist;
-            rangeBlockMapping.push_back(rb);
+            compIm.rangeInfo.push_back(rb);
         }
     }
     std::cout << "Total dist: " << totalD << std::endl;
@@ -215,8 +168,8 @@ void RefCompressor::getBestMapping() {
 RefCompressor::RefCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
     image = readPPMImage(imageFilename.c_str());
     this->imageFilename = imageFilename;
-    this->rangeSize = rangeSize;
-    this->domainSize = domainSize;
+    this->compIm.rangeSize = rangeSize;
+    this->compIm.domainSize = domainSize;
 }
 
 RefCompressor::~RefCompressor() {
@@ -226,8 +179,8 @@ RefCompressor::~RefCompressor() {
 }
 
 void RefCompressor::compress() {
-    if (!image || image->width % rangeSize || image->height % rangeSize ||
-        image->width % domainSize || image->height % domainSize) {
+    if (!image || image->width % compIm.rangeSize || image->height % compIm.rangeSize ||
+        image->width % compIm.domainSize || image->height % compIm.domainSize) {
         std::cerr << "Invalid compression request" << std::endl;
         return;
     }
@@ -238,7 +191,7 @@ void RefCompressor::compress() {
 }
 
 void RefCompressor::saveToFile(const std::string& filename) {
-
+    writeFracFile(compIm, filename.c_str());
 }
 
 std::string RefCompressor::getCompressedContents() {

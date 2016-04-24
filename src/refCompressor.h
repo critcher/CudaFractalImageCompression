@@ -12,10 +12,8 @@ class RefCompressor : public Compressor {
 private:
     Image* image;
     std::string imageFilename;
-    int rangeSize;
-    int domainSize;
     std::vector<CodebookElement> codebook;
-    std::vector<RangeBlockInfo> rangeBlockMapping;
+    CompressedImage compIm;
 
 
     void generateCodebookEelements();
