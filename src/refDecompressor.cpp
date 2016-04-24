@@ -7,7 +7,6 @@ RefDecompressor::RefDecompressor(const std::string& compressedFilename) {
     readFracFile(compressedFilename.c_str(), &compIm);
     image = new Image(compIm.width, compIm.height);
     image->clear(128, 128, 128, 128);
-    std::cout << "Pixel is " << image->data[0] << std::endl;
 }
 
 RefDecompressor::~RefDecompressor() {
@@ -58,6 +57,8 @@ void RefDecompressor::step() {
                 break;
         }
         rangeChunk.adjustColor(r.brightnessOffset, r.contrastFactor, 0);
+        rangeChunk.adjustColor(r.brightnessOffset, r.contrastFactor, 1);
+        rangeChunk.adjustColor(r.brightnessOffset, r.contrastFactor, 2);
     }
 
     delete buffer;

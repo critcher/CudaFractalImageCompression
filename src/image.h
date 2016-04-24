@@ -44,7 +44,7 @@ struct Image {
     void set(int x, int y, int r, int g, int b, int a) {
         x += xOffset;
         y += yOffset;
-        int* ptr = data + ((fullWidth * y) + x) * 4;
+        int* ptr = data + ((fullWidth * (fullHeight - y - 1)) + x) * 4;
         ptr[0] = r;
         ptr[1] = g;
         ptr[2] = b;
@@ -54,7 +54,7 @@ struct Image {
     void get(int x, int y, int* r, int* g, int* b, int* a) const {
         x += xOffset;
         y += yOffset;
-        int* ptr = data + ((fullWidth * y) + x) * 4;
+        int* ptr = data + ((fullWidth * (fullHeight - y - 1)) + x) * 4;
         *r = ptr[0];
         *g = ptr[1];
         *b = ptr[2];

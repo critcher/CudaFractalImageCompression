@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <climits>
 
 #include "display.h"
 #include "image.h"
@@ -54,7 +55,11 @@ void handleDisplay() {
     // and then bind this surface as a texture enabling it's use in
     // normal openGL rendering
     glRasterPos2i(0, 0);
-    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, img->data);
+    float scalar = INT_MAX / 255.0;
+    glPixelTransferf(GL_RED_SCALE, scalar);
+    glPixelTransferf(GL_GREEN_SCALE, scalar);
+    glPixelTransferf(GL_BLUE_SCALE, scalar);
+    glDrawPixels(width, height, GL_RGBA, GL_INT, img->data);
 
     glutSwapBuffers();
     glutPostRedisplay();
