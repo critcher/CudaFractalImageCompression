@@ -13,6 +13,7 @@ struct Image {
         data = new int[4 * width * height];
         xOffset = 0;
         yOffset = 0;
+        subIm = false;
     }
 
     Image(int x, int y, int w, int h, int* data, int fullW, int fullH) {
@@ -23,6 +24,13 @@ struct Image {
         width = w;
         height = h;
         this->data = data;
+        subIm = true;
+    }
+
+    ~Image() {
+        if (data && !subIm) {
+            delete data;
+        }
     }
 
     void clear(int r, int g, int b, int a) {
@@ -71,9 +79,17 @@ struct Image {
         return im;
     }
 
-    Image* adjustColor(int brightnessOffset, float contrast, int channel) {
-        Image* im = new Image(width, height);
+    void copyFrom(Image* im) {
+        int r, g, b, a;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                im->get(x, y, &r, &g, &b, &a);
+                this->set(x, y, r, g, b, a);
+            }
+        }        
+    }
 
+    void adjustColor(int brightnessOffset, float contrast, int channel) {
         int r, g, b, a;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -87,10 +103,9 @@ struct Image {
                 } else if (channel == 3) {
                     a = a * contrast + brightnessOffset;
                 }
-                im->set(x, y, r, g, b, a);
+                this->set(x, y, r, g, b, a);
             }
         }
-        return im;
     }
 
     int getAvgBrightness(int channel) {
@@ -151,6 +166,7 @@ struct Image {
     int fullHeight;
     int xOffset;
     int yOffset;
+    bool subIm;
     int* data;
 };
 

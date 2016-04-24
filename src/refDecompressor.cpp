@@ -1,10 +1,13 @@
+#include <iostream>
+
 #include "refDecompressor.h"
 #include "compressedFile.h"
 
 RefDecompressor::RefDecompressor(const std::string& compressedFilename) {
     readFracFile(compressedFilename.c_str(), &compIm);
     image = new Image(compIm.width, compIm.height);
-    image->clear(0, 0, 0, 0);
+    image->clear(128, 128, 128, 128);
+    std::cout << "Pixel is " << image->data[0] << std::endl;
 }
 
 RefDecompressor::~RefDecompressor() {
@@ -23,8 +26,8 @@ void RefDecompressor::step() {
     int numRangeX = compIm.width / compIm.rangeSize;
 
     for (unsigned int i = 0; i < compIm.rangeInfo.size(); ++i) {
-        int x = i % numRangeX;
-        int y = i / numRangeX;
+        int x = (i % numRangeX) * compIm.rangeSize;
+        int y = (i / numRangeX) * compIm.rangeSize;
         RangeBlockInfo r = compIm.rangeInfo[i];
         Image rangeChunk(x, y, compIm.rangeSize, compIm.rangeSize, image->data, compIm.width, compIm.height);
 
@@ -54,6 +57,7 @@ void RefDecompressor::step() {
                 frot270Transform(r.codebookElement->x, r.codebookElement->y, buffer, scale, &rangeChunk);
                 break;
         }
+        rangeChunk.adjustColor(r.brightnessOffset, r.contrastFactor, 0);
     }
 
     delete buffer;

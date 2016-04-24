@@ -17,8 +17,10 @@ void readFracFile(const char *filename, CompressedImage* ci) {
         RangeBlockInfo r;
         r.codebookElement = new CodebookElement();
         f >> r.codebookElement->x >> r.codebookElement->y >> trans >> r.brightnessOffset >> r.contrastFactor;
-        r.codebookElement->transform = static_cast<Transform>(trans);
-        ci->rangeInfo.push_back(r);
+        if (f) {
+            r.codebookElement->transform = static_cast<Transform>(trans);
+            ci->rangeInfo.push_back(r);
+        }
     }
 }
 

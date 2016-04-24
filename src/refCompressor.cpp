@@ -141,7 +141,9 @@ void RefCompressor::getBestMapping() {
                     con = ((float) rangeBlock.dot(codebook[i].imChunk, 0)) / domNorm;
                 }
                 int bright = rangeBlock.getAvgBrightness(0) - con * codebook[i].imChunk->getAvgBrightness(0);
-                Image* newDom = codebook[i].imChunk->adjustColor(bright, con, 0);
+                Image* newDom = new Image(compIm.rangeSize, compIm.rangeSize);
+                newDom->copyFrom(codebook[i].imChunk);
+                newDom->adjustColor(bright, con, 0);
                 int curDist = newDom->dist(&rangeBlock, 0);
                 delete newDom;
 
@@ -170,6 +172,8 @@ RefCompressor::RefCompressor(const std::string& imageFilename, int rangeSize, in
     this->imageFilename = imageFilename;
     this->compIm.rangeSize = rangeSize;
     this->compIm.domainSize = domainSize;
+    this->compIm.width = image->width;
+    this->compIm.height = image->height;
 }
 
 RefCompressor::~RefCompressor() {

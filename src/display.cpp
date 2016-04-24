@@ -54,7 +54,7 @@ void handleDisplay() {
     // and then bind this surface as a texture enabling it's use in
     // normal openGL rendering
     glRasterPos2i(0, 0);
-    glDrawPixels(width, height, GL_RGBA, GL_FLOAT, img->data);
+    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, img->data);
 
     glutSwapBuffers();
     glutPostRedisplay();
@@ -64,13 +64,13 @@ void handleDisplay() {
 //
 // Keyboard event handler
 void handleKeyPress(unsigned char key, int x, int y) {
-    std::cout << "button: " << key << std::endl;
     switch (key) {
     case 'q':
     case 'Q':
         exit(1);
         break;
     case '+':
+    case '=':
         gDisplay.updateDecomp = true;
         break;
     }
@@ -78,7 +78,6 @@ void handleKeyPress(unsigned char key, int x, int y) {
 
 void renderPicture() {
     if (gDisplay.updateDecomp) {
-        std::cout << "updating" << std::endl;
         gDisplay.decompressor->step();
         gDisplay.updateDecomp = false;
     }
