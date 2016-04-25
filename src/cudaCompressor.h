@@ -16,7 +16,7 @@ public:
     virtual ~CudaCompressor();
     void compress();
     void saveToFile(const std::string& filename);
-    std::string getCompressedContents();
+    CompressedImage* getCompressedContents();
 };
 
 

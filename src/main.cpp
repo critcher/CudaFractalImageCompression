@@ -25,26 +25,36 @@ int main(int argc, char** argv)
     bool useRefCompressor = true;
 
     bool checkCorrectness = false;
+    int rangeSize = 16;
+    int domainSize = 32;
 
     // parse commandline options ////////////////////////////////////////////
     int opt;
     static struct option long_options[] = {
         {"help",     0, 0,  '?'},
-        {"check",    0, 0,  'c'},
-        {"renderer", 1, 0,  'r'},
+        {"accuracy",    0, 0,  'a'},
+        {"compressor", 1, 0,  'c'},
+        {"domainSize", 1, 0,  'd'},
+        {"rangeSize", 1, 0,  'r'},
         {0 ,0, 0, 0}
     };
 
-    while ((opt = getopt_long(argc, argv, "r:c?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "c:d:r:a?", long_options, NULL)) != EOF) {
 
         switch (opt) {
-        case 'c':
+        case 'a':
             checkCorrectness = true;
             break;
-        case 'r':
+        case 'c':
             if (std::string(optarg).compare("cuda") == 0) {
                 useRefCompressor = false;
             }
+            break;
+        case 'd':
+            domainSize = atoi(optarg);
+            break;
+        case 'r':
+            rangeSize = atoi(optarg);
             break;
         case '?':
         default:
@@ -68,7 +78,7 @@ int main(int argc, char** argv)
     if (checkCorrectness) {
         Compressor* cudaCompressor;
 
-        compressor = new RefCompressor(imageFilename, 1, 1);
+        compressor = new RefCompressor(imageFilename, rangeSize, domainSize);
         //cudaCompressor = new CudaCompressor(imageFilename, 1, 1);
 
         // Check the correctness
@@ -78,7 +88,7 @@ int main(int argc, char** argv)
     }
     else {
         if (useRefCompressor)
-            compressor = new RefCompressor(imageFilename, 16, 32);
+            compressor = new RefCompressor(imageFilename, rangeSize, domainSize);
         else {
             //compressor = new CudaCompressor(imageFilename, 1, 1);
         }

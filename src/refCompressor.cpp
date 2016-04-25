@@ -198,6 +198,6 @@ void RefCompressor::saveToFile(const std::string& filename) {
     writeFracFile(compIm, filename.c_str());
 }
 
-std::string RefCompressor::getCompressedContents() {
-    return "";
+CompressedImage* RefCompressor::getCompressedContents() {
+    return &compIm;
 }

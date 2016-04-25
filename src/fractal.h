@@ -13,6 +13,21 @@ struct CodebookElement {
     int y;
     Image* imChunk;
     Transform transform;
+
+    bool operator==(const CodebookElement& other) {
+        if (x != other.x || y != other.y) {
+            return false;
+        }
+        if (transform != other.transform) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    bool operator!=(const CodebookElement& other) {
+      return !(*this == other);
+    }    
 };
 
 struct RangeBlockInfo {
@@ -22,6 +37,26 @@ struct RangeBlockInfo {
     CodebookElement* codebookElement;
     int brightnessOffset;
     float contrastFactor;
+
+    bool operator==(const RangeBlockInfo& other) {
+        if (x != other.x || y != other.y) {
+            return false;
+        }
+        if (brightnessOffset != other.brightnessOffset || contrastFactor != other.contrastFactor) {
+            return false;
+        }
+        if (codebookElement == NULL && other.codebookElement == NULL) {
+            return true;
+        } else if (codebookElement == NULL || other.codebookElement == NULL) {
+            return false;
+        }
+
+        return *codebookElement == *(other.codebookElement);
+    }
+
+    bool operator!=(const RangeBlockInfo& other) {
+      return !(*this == other);
+    }
 };
 
 struct CompressedImage {
@@ -30,6 +65,29 @@ struct CompressedImage {
     int rangeSize;
     int domainSize;
     std::vector<RangeBlockInfo> rangeInfo;
+
+    bool operator==(const CompressedImage& other) {
+        if (width != other.width || height != other.height) {
+            return false;
+        }
+        if (rangeSize != other.rangeSize || domainSize != other.domainSize) {
+            return false;
+        }
+        if (rangeInfo.size() != other.rangeInfo.size()) {
+            return false;
+        }
+
+        for (unsigned int i = 0; i < rangeInfo.size(); ++i) {
+            if (rangeInfo[i] != other.rangeInfo[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const CompressedImage& other) {
+      return !(*this == other);
+    }
 };
 
 void identityTransform(int x, int y, Image* fullImg, float scale, Image* im);

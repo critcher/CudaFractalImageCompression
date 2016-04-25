@@ -43,6 +43,6 @@ void CudaCompressor::saveToFile(const std::string& filename) {
 
 }
 
-std::string CudaCompressor::getCompressedContents() {
-    return "";
+CompressedImage* CudaCompressor::getCompressedContents() {
+    return NULL;
 }
