@@ -1,0 +1,7 @@
+__device__ __inline__ void identityTransform(int x, int y, Image* fullImg, float scale, Image* im) {
+    int* ptr = data + ((w * (h - y - 1)) + x) * 4;
+    ptr[0] = r;
+    ptr[1] = g;
+    ptr[2] = b;
+    ptr[3] = a;
+}
