@@ -24,15 +24,9 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
-    // TODO Load the image
-    image = NULL;
-    this->imageFilename = imageFilename;
 }
 
 CudaCompressor::~CudaCompressor() {
-    if (image) {
-        delete image;
-    }
 }
 
 void CudaCompressor::compress() {
