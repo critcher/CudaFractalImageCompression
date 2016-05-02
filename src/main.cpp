@@ -79,7 +79,7 @@ int main(int argc, char** argv)
         Compressor* cudaCompressor;
 
         compressor = new RefCompressor(imageFilename, rangeSize, domainSize);
-        cudaCompressor = new CudaCompressor(imageFilename, 1, 1);
+        cudaCompressor = new CudaCompressor(imageFilename, rangeSize, domainSize);
 
         // Check the correctness
         CheckBenchmark(compressor, cudaCompressor);
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
         if (useRefCompressor)
             compressor = new RefCompressor(imageFilename, rangeSize, domainSize);
         else {
-            compressor = new CudaCompressor(imageFilename, 1, 1);
+            compressor = new CudaCompressor(imageFilename, rangeSize, domainSize);
         }
 
         glutInit(&argc, argv);

@@ -10,6 +10,7 @@ class CudaCompressor : public Compressor {
 private:
     Image* image;
     CompressedImage compIm;
+    int* cudaImageData;
 
 public:
     CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize);

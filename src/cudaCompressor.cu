@@ -32,8 +32,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void resizeKernel(int* resizedImg, float scale, int w, int h) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int x = index % deviceConstants.imageWidth;
-    int y = index / deviceConstants.imageWidth;
+    int x = index % w;
+    int y = index / w;
 
     int r, g, b, a;
     int oldX = scale * x;
@@ -50,11 +50,13 @@ CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, 
   this->compIm.width = image->width;
   this->compIm.height = image->height;
 
+  cudaMalloc(&(cudaImageData), sizeof(int) * 4 * image->width * image->height);
+
   GlobalConstants hostConstants;
   hostConstants.imageWidth = image->width;
   hostConstants.imageHeight = image->height;
+  hostConstants.imageData = cudaImageData;
 
-  cudaMalloc(&(hostConstants.imageData), sizeof(int) * 4 * image->width * image->height);
   cudaMemcpy(hostConstants.imageData, image->data, sizeof(int) * 4 * image->width * image->height, cudaMemcpyHostToDevice);
   cudaMemcpyToSymbol(deviceConstants, &hostConstants, sizeof(GlobalConstants));
 }
@@ -84,6 +86,7 @@ void CudaCompressor::compress() {
   dim3 resizeDim((newW * newH) / rangeDim.x);
   resizeKernel<<<resizeDim, rangeDim>>>(smallImg, scale, newW, newH);
   cudaThreadSynchronize();
+
 }
 
 void CudaCompressor::saveToFile(const std::string& filename) {
