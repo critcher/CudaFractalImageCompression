@@ -82,7 +82,7 @@ void CudaCompressor::compress() {
   cudaMalloc(&(smallImg), sizeof(int) * 4 * newW * newH);
 
   dim3 resizeDim((newW * newH) / rangeDim.x);
-  circleChunkTestKernel<<<resizeDim, rangeDim>>>(smallImg, scale, newW, newH);
+  resizeKernel<<<resizeDim, rangeDim>>>(smallImg, scale, newW, newH);
   cudaThreadSynchronize();
 }
 

@@ -1,4 +1,4 @@
-__device__ __inline__ void pixelSet(int x, int y, int w, int h, int r, int g, int b, int a, int* ptr) {
+__device__ __inline__ void pixelSet(int x, int y, int w, int h, int r, int g, int b, int a, int* data) {
     int* ptr = data + ((w * (h - y - 1)) + x) * 4;
     ptr[0] = r;
     ptr[1] = g;
@@ -6,7 +6,7 @@ __device__ __inline__ void pixelSet(int x, int y, int w, int h, int r, int g, in
     ptr[3] = a;
 }
 
-__device__ __inline__ void pixelGet(int x, int y, int w, int h, int* r, int* g, int* b, int* a, int* ptr) {
+__device__ __inline__ void pixelGet(int x, int y, int w, int h, int* r, int* g, int* b, int* a, int* data) {
     int* ptr = data + ((w * (h - y - 1)) + x) * 4;
     *r = ptr[0];
     *g = ptr[1];
