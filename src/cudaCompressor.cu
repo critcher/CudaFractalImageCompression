@@ -6,6 +6,8 @@
 
 #include "cudaCompressor.h"
 #include "image.h"
+#include "ppm.h"
+#include "compressedFile.h"
 
 struct GlobalConstants {
     int imageWidth;
