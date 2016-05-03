@@ -10,15 +10,18 @@
 #include "ppm.h"
 #include "compressedFile.h"
 
-#include "imageUtils.cu_inl"
-
 struct GlobalConstants {
     int imageWidth;
     int imageHeight;
+    int rangeSize;
+    int domainSize;
     int* imageData;
 };
 
 __constant__ GlobalConstants deviceConstants;
+
+#include "imageUtils.cu_inl"
+#include "transforms.cu_inl"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -31,16 +34,53 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 __global__ void resizeKernel(int* resizedImg, float scale, int w, int h) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int x = index % w;
-    int y = index / w;
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int x = index % w;
+  int y = index / w;
 
-    int r, g, b, a;
-    int oldX = scale * x;
-    int oldY = scale * y;
+  int r, g, b, a;
+  int oldX = scale * x;
+  int oldY = scale * y;
 
-    pixelGet(oldX, oldY, deviceConstants.imageWidth, deviceConstants.imageHeight, &r, &g, &b, &a, deviceConstants.imageData);
-    pixelSet(x, y, w, h, r, g, b, a, resizedImg);
+  pixelGet(oldX, oldY, deviceConstants.imageWidth, deviceConstants.imageHeight, &r, &g, &b, &a, deviceConstants.imageData);
+  pixelSet(x, y, w, h, r, g, b, a, resizedImg);
+}
+
+__global__ void transformKernel(int* fullImg, float scale, int widthInBlocks, int* codebookElements) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int x = (index / (8 * widthInBlocks)) * deviceConstants.rangeSize;
+  int domainIndex = (index / 8);
+  int y = (domainIndex % widthInBlocks) * deviceConstants.rangeSize;
+  int transform = index % 8;
+  int* myElement = codebookElements + index * (4 * deviceConstants.rangeSize * deviceConstants.rangeSize);
+  printf("index: %d, (%d, %d), transform: %d, pointer:%d\n", index, x, y, transform, (int)myElement);
+
+  switch (transform) {
+    case identity:
+        identityTransform(x, y, fullImg, scale, myElement);
+        break;
+    case rot90:
+        rot90Transform(x, y, fullImg, scale, myElement);
+        break;
+    case rot180:
+        rot180Transform(x, y, fullImg, scale, myElement);
+        break;
+    case rot270:
+        rot270Transform(x, y, fullImg, scale, myElement);
+        break;
+    case flip:
+        flipTransform(x, y, fullImg, scale, myElement);
+        break;
+    case frot90:
+        frot90Transform(x, y, fullImg, scale, myElement);
+        break;
+    case frot180:
+        frot180Transform(x, y, fullImg, scale, myElement);
+        break;
+    case frot270:
+        frot270Transform(x, y, fullImg, scale, myElement);
+        break;
+  }
 }
 
 CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
@@ -55,6 +95,8 @@ CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, 
   GlobalConstants hostConstants;
   hostConstants.imageWidth = image->width;
   hostConstants.imageHeight = image->height;
+  hostConstants.rangeSize = rangeSize;
+  hostConstants.domainSize = domainSize;
   hostConstants.imageData = cudaImageData;
 
   cudaMemcpy(hostConstants.imageData, image->data, sizeof(int) * 4 * image->width * image->height, cudaMemcpyHostToDevice);
@@ -87,6 +129,14 @@ void CudaCompressor::compress() {
   resizeKernel<<<resizeDim, rangeDim>>>(smallImg, scale, newW, newH);
   cudaThreadSynchronize();
 
+  // Make Codebook elements
+  int* codebookElements;
+  int numDomainBlocks = (image->width / compIm.domainSize) * (image->height / compIm.domainSize);
+  cudaMalloc(&(codebookElements), sizeof(int) * 4 * compIm.rangeSize * compIm.rangeSize * numDomainBlocks * 8);
+  dim3 numDomainDim(numDomainBlocks, 1);
+  dim3 transformDim(8);
+  transformKernel<<<transformDim, numDomainDim>>>(smallImg, 1 / scale, image->width / compIm.domainSize, codebookElements);
+  cudaThreadSynchronize();
 }
 
 void CudaCompressor::saveToFile(const std::string& filename) {

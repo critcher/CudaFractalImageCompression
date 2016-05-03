@@ -1,7 +1,87 @@
-__device__ __inline__ void identityTransform(int x, int y, Image* fullImg, float scale, Image* im) {
-    int* ptr = data + ((w * (h - y - 1)) + x) * 4;
-    ptr[0] = r;
-    ptr[1] = g;
-    ptr[2] = b;
-    ptr[3] = a;
+__device__ __inline__ void identityTransform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(curX, curY, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void rot90Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(deviceConstants.rangeSize - curY - 1, curX, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void rot180Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(deviceConstants.rangeSize - curX - 1, deviceConstants.rangeSize - curY - 1, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void rot270Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(curY, deviceConstants.rangeSize - curX - 1, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void flipTransform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(deviceConstants.rangeSize - curX - 1, curY, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void frot90Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(deviceConstants.rangeSize - curY - 1, deviceConstants.rangeSize - curX - 1, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void frot180Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(curX, deviceConstants.rangeSize - curY - 1, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
+}
+
+__device__ __inline__ void frot270Transform(int x, int y, int* fullImg, float scale, int* im) {
+    int r, g, b, a;
+    for (int curY = 0; curY < deviceConstants.rangeSize; curY++) {
+        for (int curX = 0; curX < deviceConstants.rangeSize; curX++) {
+            pixelGet(curX + x, curY + y, deviceConstants.imageWidth * scale,
+                     deviceConstants.imageHeight * scale, &r, &g, &b, &a, fullImg);
+            pixelSet(curY, curX, deviceConstants.rangeSize, deviceConstants.rangeSize, r, g, b, a, im);
+        }
+    }
 }
