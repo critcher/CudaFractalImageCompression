@@ -53,7 +53,6 @@ __global__ void transformKernel(int* fullImg, float scale, int widthInBlocks, in
   int y = (domainIndex % widthInBlocks) * deviceConstants.rangeSize;
   int transform = index % 8;
   int* myElement = codebookElements + index * (4 * deviceConstants.rangeSize * deviceConstants.rangeSize);
-  printf("index: %d, (%d, %d), transform: %d, pointer:%d\n", index, x, y, transform, (int)myElement);
 
   switch (transform) {
     case identity:
