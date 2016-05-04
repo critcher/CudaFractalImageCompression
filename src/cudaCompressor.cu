@@ -188,7 +188,7 @@ void CudaCompressor::compress() {
   // Calculate range block-codebook element pairwise distances
   int* distances;
   int* brightnesses;
-  float contrasts;
+  float* contrasts;
   int numCodebookeElements = numDomainBlocks * 8;
   int numRangeBlocks = (image->width / compIm.rangeSize) * (image->height / compIm.rangeSize);
   cudaMalloc(&(distances), sizeof(int) * numCodebookeElements * numRangeBlocks);
