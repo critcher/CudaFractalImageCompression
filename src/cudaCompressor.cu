@@ -126,7 +126,7 @@ __global__ void distanceKernel(int* codebookElements, int numCodebookeElements, 
 
   distances[index] = dist;
   brightnesses[index] = bright;
-  cointrasts[index] = con;
+  contrasts[index] = con;
 }
 
 CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
