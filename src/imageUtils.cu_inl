@@ -38,5 +38,5 @@ __device__ __inline__ int averageBrightness(int* im, int x, int y, int fullW, in
             sum += colors[channel];
         }
     }
-    return sum;
+    return sum / (w *h);
 }
