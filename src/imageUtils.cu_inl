@@ -13,3 +13,30 @@ __device__ __inline__ void pixelGet(int x, int y, int w, int h, int* r, int* g, 
     *b = ptr[2];
     *a = ptr[3];
 }
+
+__device__ __inline__ int imDot(int* i1, int x1, int y1, int fullW1, int fullH1, int* i2, int fullW2,
+                              int fullH2, int w, int h, int channel) {
+    int d = 0;
+    int colors[4];
+    int otherColors[4];
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            pixelGet(x + x1, y + y1, fullW1, fullH1, colors, colors+1, colors+2, colors+3, i1);
+            pixelGet(x, y, fullW2, fullH2, otherColors, otherColors+1, otherColors+2, otherColors+3, i2);
+            d += colors[channel] * otherColors[channel];
+        }
+    }
+    return d;
+}
+
+__device__ __inline__ int averageBrightness(int* im, int x, int y, int fullW, int fullH, int w, int h, int channel) {
+    int sum = 0;
+    int colors[4];
+    for (int yOff = 0; yOff < h; yOff++) {
+        for (int xOff = 0; xOff < w; xOff++) {
+            pixelGet(x + xOff, y + yOff, fullW, fullH, colors, colors+1, colors+2, colors+3, im);
+            sum += colors[channel];
+        }
+    }
+    return sum;
+}

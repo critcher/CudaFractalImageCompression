@@ -82,6 +82,53 @@ __global__ void transformKernel(int* fullImg, float scale, int widthInBlocks, in
   }
 }
 
+__global__ void distanceKernel(int* codebookElements, int numCodebookeElements, int widthInRangeBlocks,
+                               int* distances, int* brightnesses, float* contrasts) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int rangeNum = index / numCodebookeElements;
+  int rSize = deviceConstants.rangeSize;
+  int rangeX = (rangeNum % widthInRangeBlocks) * rSize;
+  int rangeY = (rangeNum / widthInRangeBlocks) * rSize;
+  int codebookNum = index % numCodebookeElements;
+  int* codebookPtr = codebookElements + codebookNum * (4 * deviceConstants.rangeSize * deviceConstants.rangeSize);
+
+  // Get contrast scaling factor
+  int domNorm = imDot(codebookPtr, 0, 0, rSize, rSize, codebookPtr, rSize, rSize, rSize, rSize, 0);
+  float con;
+  if (domNorm == 0) {
+      con = 0;
+  } else {
+      float numerator = imDot(deviceConstants.imageData, rangeX, rangeY, deviceConstants.imageWidth,
+                              deviceConstants.imageHeight, codebookPtr, rSize, rSize, rSize, rSize, 0);
+      con = numerator / domNorm;
+  }
+  
+  // Calculate brightness offset
+  int rangeBrightness = averageBrightness(deviceConstants.imageData, rangeX, rangeY, deviceConstants.imageWidth,
+                                          deviceConstants.imageHeight, rSize, rSize, 0);
+  int codebookBrightness = averageBrightness(codebookPtr, 0, 0, rSize, rSize, rSize, rSize, 0);
+  int bright = rangeBrightness - con * codebookBrightness;
+  
+  // Calculate distance
+  int dist = 0;
+  int colors[4];
+  int otherColors[4];
+  for (int y = 0; y < rSize; y++) {
+      for (int x = 0; x < rSize; x++) {
+          pixelGet(x + rangeX, y + rangeY, deviceConstants.imageWidth, deviceConstants.imageHeight,
+                   colors, colors+1, colors+2, colors+3, deviceConstants.imageData);
+          pixelGet(x, y, rSize, rSize, otherColors, otherColors+1, otherColors+2, otherColors+3, codebookPtr);
+          otherColors[0] = con * otherColors[0] + bright;
+          int diff = colors[0] - otherColors[0];
+          dist += diff * diff;
+      }
+  }
+
+  distances[index] = dist;
+  brightnesses[index] = bright;
+  cointrasts[index] = con;
+}
+
 CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
   image = readPPMImage(imageFilename.c_str());
   this->compIm.rangeSize = rangeSize;
@@ -105,6 +152,7 @@ CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, 
 CudaCompressor::~CudaCompressor() {
   if (image) {
     delete image;
+    cudaFree(cudaImageData);
   }
 }
 
@@ -132,10 +180,30 @@ void CudaCompressor::compress() {
   int* codebookElements;
   int numDomainBlocks = (image->width / compIm.domainSize) * (image->height / compIm.domainSize);
   cudaMalloc(&(codebookElements), sizeof(int) * 4 * compIm.rangeSize * compIm.rangeSize * numDomainBlocks * 8);
-  dim3 numDomainDim(numDomainBlocks, 1);
-  dim3 transformDim(8);
-  transformKernel<<<transformDim, numDomainDim>>>(smallImg, 1 / scale, image->width / compIm.domainSize, codebookElements);
+  dim3 baseDim(1024, 1);
+  dim3 transformDim((numDomainBlocks * 8) / baseDim.x);
+  transformKernel<<<transformDim, baseDim>>>(smallImg, 1 / scale, image->width / compIm.domainSize, codebookElements);
   cudaThreadSynchronize();
+
+  // Calculate range block-codebook element pairwise distances
+  int* distances;
+  int* brightnesses;
+  float contrasts;
+  int numCodebookeElements = numDomainBlocks * 8;
+  int numRangeBlocks = (image->width / compIm.rangeSize) * (image->height / compIm.rangeSize);
+  cudaMalloc(&(distances), sizeof(int) * numCodebookeElements * numRangeBlocks);
+  cudaMalloc(&(brightnesses), sizeof(int) * numCodebookeElements * numRangeBlocks);
+  cudaMalloc(&(contrasts), sizeof(float) * numCodebookeElements * numRangeBlocks);
+  dim3 distDim((numCodebookeElements * numRangeBlocks) / baseDim.x);
+  distanceKernel<<<distDim, baseDim>>>(codebookElements, numCodebookeElements, image->width / compIm.rangeSize,
+                                       distances, brightnesses, contrasts);
+  cudaThreadSynchronize();
+
+  cudaFree(smallImg);
+  cudaFree(codebookElements);
+  cudaFree(distances);
+  cudaFree(brightnesses);
+  cudaFree(contrasts);
 }
 
 void CudaCompressor::saveToFile(const std::string& filename) {
