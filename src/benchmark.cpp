@@ -23,4 +23,5 @@ void CheckBenchmark(Compressor* ref_compressor, Compressor* cuda_compressor) {
 
     printf("Reference:   %.4f ms\n", 1000.f * refTime);
     printf("CUDA:    %.4f ms\n", 1000.f * cudaTime);
+    printf("Speedup:    %.4f\n", refTime / cudaTime);
 }

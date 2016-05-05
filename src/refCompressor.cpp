@@ -108,14 +108,14 @@ void RefCompressor::generateCodebookEelements() {
 
     for (int x = 0; x < image->width; x += compIm.domainSize) {
         for (int y = 0; y < image->height; y += compIm.domainSize) {
-            codebook.push_back(generateFRot270(x, y, smallImg));
-            codebook.push_back(generateFRot180(x, y, smallImg));
-            codebook.push_back(generateFRot90(x, y, smallImg));
-            codebook.push_back(generateFlip(x, y, smallImg));
-            codebook.push_back(generateRotate270(x, y, smallImg));
-            codebook.push_back(generateRotate180(x, y, smallImg));
-            codebook.push_back(generateRotate90(x, y, smallImg));
             codebook.push_back(generateIdentity(x, y, smallImg));
+            codebook.push_back(generateRotate90(x, y, smallImg));
+            codebook.push_back(generateRotate180(x, y, smallImg));
+            codebook.push_back(generateRotate270(x, y, smallImg));
+            codebook.push_back(generateFlip(x, y, smallImg));
+            codebook.push_back(generateFRot90(x, y, smallImg));
+            codebook.push_back(generateFRot180(x, y, smallImg));
+            codebook.push_back(generateFRot270(x, y, smallImg));
         }
     }
     delete smallImg;
