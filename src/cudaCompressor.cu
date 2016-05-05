@@ -38,6 +38,10 @@ __global__ void resizeKernel(int* resizedImg, float scale, int w, int h) {
   int x = index % w;
   int y = index / w;
 
+  if (x >= w || y >= h) {
+    return;
+  }
+
   int r, g, b, a;
   int oldX = scale * x;
   int oldY = scale * y;
@@ -53,6 +57,10 @@ __global__ void transformKernel(int* fullImg, float scale, int widthInBlocks, in
   int y = (domainIndex % widthInBlocks) * deviceConstants.rangeSize;
   int transform = index % 8;
   int* myElement = codebookElements + index * (4 * deviceConstants.rangeSize * deviceConstants.rangeSize);
+
+  if (x >= (deviceConstants.imageWidth * scale) || y >= (deviceConstants.imageHeight * scale)) {
+    return;
+  }
 
   switch (transform) {
     case identity:
@@ -82,15 +90,19 @@ __global__ void transformKernel(int* fullImg, float scale, int widthInBlocks, in
   }
 }
 
-__global__ void distanceKernel(int* codebookElements, int numCodebookeElements, int widthInRangeBlocks,
+__global__ void distanceKernel(int* codebookElements, int numCodebookElements, int widthInRangeBlocks,
                                int* distances, int* brightnesses, float* contrasts) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-  int rangeNum = index / numCodebookeElements;
+  int rangeNum = index / numCodebookElements;
   int rSize = deviceConstants.rangeSize;
   int rangeX = (rangeNum % widthInRangeBlocks) * rSize;
   int rangeY = (rangeNum / widthInRangeBlocks) * rSize;
-  int codebookNum = index % numCodebookeElements;
+  int codebookNum = index % numCodebookElements;
   int* codebookPtr = codebookElements + codebookNum * (4 * deviceConstants.rangeSize * deviceConstants.rangeSize);
+
+  if (rangeX >= deviceConstants.imageWidth || rangeY >= deviceConstants.imageHeight) {
+    return;
+  }
 
   // Get contrast scaling factor
   int domNorm = imDot(codebookPtr, 0, 0, rSize, rSize, codebookPtr, rSize, rSize, rSize, rSize, 0);
@@ -129,7 +141,39 @@ __global__ void distanceKernel(int* codebookElements, int numCodebookeElements, 
   contrasts[index] = con;
 }
 
+__global__ void bestMatchKernel(int* distances, int* brightnesses, float* contrasts, float scale, int numCodebookElements,
+                                int numRangeBlocks, RangeBlockInfo* deviceRanges, CodebookElement* deviceBestCodebook) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  if (index >= numRangeBlocks) {
+    return;
+  }
+
+  int minDist = -1;
+  int minElement = -1;
+  for (int i = index * numCodebookElements; i < (index + 1) * numCodebookElements; ++i) {
+    int curDist = distances[i];
+    if (minElement < 0 || (curDist < minDist && curDist >= 0)) {
+      minElement = i;
+      minDist = curDist;
+    }
+  }
+
+  deviceRanges[index].brightnessOffset = brightnesses[minElement];
+  deviceRanges[index].contrastFactor = contrasts[minElement];
+  int rangeWidth = deviceConstants.imageWidth / deviceConstants.rangeSize;
+  deviceRanges[index].x = (index % rangeWidth) * deviceConstants.rangeSize;
+  deviceRanges[index].y = (index / rangeWidth) * deviceConstants.rangeSize;
+
+  int domainWidth = deviceConstants.imageWidth / deviceConstants.domainSize;
+  int bestChoice = minElement - (index * numCodebookElements);
+  int domainNum = bestChoice / 8;
+  deviceBestCodebook[index].x = (domainNum / domainWidth) * deviceConstants.domainSize;
+  deviceBestCodebook[index].y = (domainNum % domainWidth) * deviceConstants.domainSize;
+  deviceBestCodebook[index].transform = (Transform) (bestChoice % 8);
+}
+
 CudaCompressor::CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize) {
+  bestCodebook = NULL;
   image = readPPMImage(imageFilename.c_str());
   this->compIm.rangeSize = rangeSize;
   this->compIm.domainSize = domainSize;
@@ -153,6 +197,9 @@ CudaCompressor::~CudaCompressor() {
   if (image) {
     delete image;
     cudaFree(cudaImageData);
+  }
+  if (bestCodebook) {
+    free(bestCodebook);
   }
 }
 
@@ -181,7 +228,7 @@ void CudaCompressor::compress() {
   int numDomainBlocks = (image->width / compIm.domainSize) * (image->height / compIm.domainSize);
   cudaMalloc(&(codebookElements), sizeof(int) * 4 * compIm.rangeSize * compIm.rangeSize * numDomainBlocks * 8);
   dim3 baseDim(1024, 1);
-  dim3 transformDim((numDomainBlocks * 8) / baseDim.x);
+  dim3 transformDim(((numDomainBlocks * 8) / baseDim.x) + 1);
   transformKernel<<<transformDim, baseDim>>>(smallImg, 1 / scale, image->width / compIm.domainSize, codebookElements);
   cudaThreadSynchronize();
 
@@ -189,21 +236,48 @@ void CudaCompressor::compress() {
   int* distances;
   int* brightnesses;
   float* contrasts;
-  int numCodebookeElements = numDomainBlocks * 8;
+  int numCodebookElements = numDomainBlocks * 8;
   int numRangeBlocks = (image->width / compIm.rangeSize) * (image->height / compIm.rangeSize);
-  cudaMalloc(&(distances), sizeof(int) * numCodebookeElements * numRangeBlocks);
-  cudaMalloc(&(brightnesses), sizeof(int) * numCodebookeElements * numRangeBlocks);
-  cudaMalloc(&(contrasts), sizeof(float) * numCodebookeElements * numRangeBlocks);
-  dim3 distDim((numCodebookeElements * numRangeBlocks) / baseDim.x);
-  distanceKernel<<<distDim, baseDim>>>(codebookElements, numCodebookeElements, image->width / compIm.rangeSize,
+  cudaMalloc(&(distances), sizeof(int) * numCodebookElements * numRangeBlocks);
+  cudaMalloc(&(brightnesses), sizeof(int) * numCodebookElements * numRangeBlocks);
+  cudaMalloc(&(contrasts), sizeof(float) * numCodebookElements * numRangeBlocks);
+  dim3 distDim(((numCodebookElements * numRangeBlocks) / baseDim.x) + 1);
+  distanceKernel<<<distDim, baseDim>>>(codebookElements, numCodebookElements, image->width / compIm.rangeSize,
                                        distances, brightnesses, contrasts);
   cudaThreadSynchronize();
+
+  // Fill the compressed image with the best pairs
+  RangeBlockInfo* deviceRanges;
+  CodebookElement* deviceBestCodebook;
+  cudaMalloc(&(deviceRanges), sizeof(RangeBlockInfo) * numRangeBlocks);
+  cudaMalloc(&(deviceBestCodebook), sizeof(CodebookElement) * numRangeBlocks);
+  dim3 bestDim((numRangeBlocks / baseDim.x) + 1);
+  bestMatchKernel<<<bestDim, baseDim>>>(distances, brightnesses, contrasts, scale, numCodebookElements,
+                                        numRangeBlocks, deviceRanges, deviceBestCodebook);
+  cudaThreadSynchronize();
+
+  bestCodebook = (CodebookElement*) malloc(sizeof(CodebookElement) * numRangeBlocks);
+  compIm.rangeInfo.resize(numRangeBlocks);
+  cudaMemcpy(compIm.rangeInfo.data(), deviceRanges, sizeof(RangeBlockInfo) * numRangeBlocks, cudaMemcpyDeviceToHost);
+  cudaMemcpy(bestCodebook, deviceBestCodebook, sizeof(CodebookElement) * numRangeBlocks, cudaMemcpyDeviceToHost);
+  for (int i = 0; i < numRangeBlocks; ++i) {
+    compIm.rangeInfo[i].codebookElement = &(bestCodebook[i]);
+  }
+
+  /*int* hostDistances = (int*) malloc(sizeof(int) * numCodebookElements * numRangeBlocks);
+  cudaMemcpy(hostDistances, brightnesses, sizeof(int) * numCodebookElements * numRangeBlocks, cudaMemcpyDeviceToHost);
+  for (int i = 0; i < numCodebookElements * numRangeBlocks; ++i) {
+    std::cout << hostDistances[i] << std::endl;
+  }
+  free(hostDistances);*/
 
   cudaFree(smallImg);
   cudaFree(codebookElements);
   cudaFree(distances);
   cudaFree(brightnesses);
   cudaFree(contrasts);
+  cudaFree(deviceRanges);
+  cudaFree(deviceBestCodebook);
 }
 
 void CudaCompressor::saveToFile(const std::string& filename) {

@@ -11,6 +11,7 @@ private:
     Image* image;
     CompressedImage compIm;
     int* cudaImageData;
+    CodebookElement* bestCodebook;
 
 public:
     CudaCompressor(const std::string& imageFilename, int rangeSize, int domainSize);
