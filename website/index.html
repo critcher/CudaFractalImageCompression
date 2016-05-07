@@ -80,7 +80,7 @@
             </h2>
             <h3>Clayton Ritcher and Nora Shoemaker</h3>
 
-            <p class="lead">We are going to create a parallelized implementation of fractal image compression. Because of the relatively fast speed of decoding, we will focus on a CUDA-based encoding implementation only. </p>
+            <p class="lead">We created a parallelized implementation of fractal image compression. Because of the relatively fast speed of decoding, we focused on a CUDA-based encoding implementation only. </p>
         </div>
 
         <hr class="featurette-divider">
@@ -89,35 +89,84 @@
         <div class="featurette" id="proposal">
             <h2 class="featurette-heading">Background
             </h2>
-            <p class="lead">Fractal Image Compression had its heyday in the early 90s (even being chosen as the image compression algorithm for all images in Microsoft’s Encarta Encyclopedia <a href="http://www.math.psu.edu/tseng/class/Fractals.html" target="_blank">[link]</a>) but it was never able to eclipse JPEG. Its main disadvantage compared to JPEG compression is high computation time for compression, which is what we would like to address for this project.</p>
+            <p>Fractal Image Compression had its heyday in the early 90s (even being chosen as the image compression algorithm for all images in Microsoft’s Encarta Encyclopedia <a href="http://www.math.psu.edu/tseng/class/Fractals.html" target="_blank">[link]</a>) but it was never able to eclipse JPEG. Its main disadvantage compared to JPEG compression is high computation time for compression, which is what we would like to address for this project.</p>
 
-            <p class="lead">The key insight behind fractal image compression is that self similarity exists in many images, and that this self similarity can be exploited to compress an image. Specifically, fractal image compression looks to find affine transformations from chunks of an image, called domain blocks, to every smaller chunk of the image, called range blocks (which partition the image).These transformations form an iterated function system <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">(IFS)</a> on the image, and if the transformations are chosen correctly, this IFS will converge to the original image for any input. The compressed image, then, is just a file representing the IFS.</p>
+            <p>The key insight behind fractal image compression is that self similarity exists in many images, and that this self similarity can be exploited to compress an image. Specifically, fractal image compression looks to find affine transformations from chunks of an image, called domain blocks, to every smaller chunk of the image, called range blocks (which partition the image).These transformations form an iterated function system <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">(IFS)</a> on the image, and if the transformations are chosen correctly, this IFS will converge to the original image for any input. The compressed image, then, is just a file representing the IFS.</p>
 
-            <p class="lead"><a href="https://en.wikipedia.org/wiki/Collage_theorem" target="_blank">The Collage Theorem</a> describes how we can find the appropriate affine transformations to make up our IFS. In layman’s terms, this theorem says that the best way to find the desired affine transformation for a range block is to find the transformation-domain block pair whose result is most similar to the range block. Finding this mapping for every range block defines the IFS, and thus the compressed image.</p>
+            <p><a href="https://en.wikipedia.org/wiki/Collage_theorem" target="_blank">The Collage Theorem</a> describes how we can find the appropriate affine transformations to make up our IFS. In layman’s terms, this theorem says that the best way to find the desired affine transformation for a range block is to find the transformation-domain block pair whose result is most similar to the range block. Finding this mapping for every range block defines the IFS, and thus the compressed image.</p>
 
-            <p class="lead">Decoding the image, which we will not be focusing on for this project, simply involves iterating the IFS on any input image until it converges. The image it converges to will be the original image before compression (with some loss).</p>
+            <p>Decoding the image, which we will not be focusing on for this project, simply involves iterating the IFS on any input image until it converges. The image it converges to will be the original image before compression (with some loss).</p>
 
             <img class=" img-responsive pull-left" src="images/monkeys.JPG">
             <p><a href="http://www.cs.northwestern.edu/~agupta/_projects/image_processing/web/FractalImageCompression/" target="_blank">Picture source</a>
 
             </p>
 
-            <p class="lead">We believe the image encoding can be heavily parallelized. The first step of the encoding is to create a codebook, or set of transformed domain blocks. This can be as simple as partitioning the image into squares, and computing each of the 8 affine transformations possible for that square (rotations of 0, 90, 180, and 270 degrees on the normal and mirrored versions of the block). All of these transformations can be computed in parallel.</p>
+            <p>We believe the image encoding can be heavily parallelized. The first step of the encoding is to create a codebook, or set of transformed domain blocks. This can be as simple as partitioning the image into squares, and computing each of the 8 affine transformations possible for that square (rotations of 0, 90, 180, and 270 degrees on the normal and mirrored versions of the block). All of these transformations can be computed in parallel.</p>
 
-            <p class="lead">Next, the best element of the codebook must be computed for each range block. This involves comparing each range block to each domain block using some distance metric, and choosing the codebook element that minimizes this distance (Collage Theorem). This, again can be parallelized -- at least across range blocks, and possibly across range block-codebook element pairs (to compute distances) with a final min function on the distances for each range block.</p>
+            <p>Next, the best element of the codebook must be computed for each range block. This involves comparing each range block to each domain block using some distance metric, and choosing the codebook element that minimizes this distance (Collage Theorem). This, again can be parallelized -- at least across range blocks, and possibly across range block-codebook element pairs (to compute distances) with a final min function on the distances for each range block.</p>
 
-            <p class="lead">A further improvement to the project could involve adding support for color images, which naively could be looked at as compressing each channel as a greyscale image (which could be done in parallel, as well). Additionally, we could investigate methods for pruning the codebook, so as to decrease the number of possible transformations to be considered for each range block. This could also present an opportunity for parallelization.</p>
+            <p>A further improvement to the project could involve adding support for color images, which naively could be looked at as compressing each channel as a greyscale image (which could be done in parallel, as well). Additionally, we could investigate methods for pruning the codebook, so as to decrease the number of possible transformations to be considered for each range block. This could also present an opportunity for parallelization.</p>
         </div>
 
         <hr class="featurette-divider">
 
-        <!-- Third Featurette -->
+       
+        <div class="featurette" >
+            <h2 class="featurette-heading">Approach
+            </h2>
+            <p class="lead">TODO:</p>
+            <p>We created a CUDA implementation in C, targeting the TITAN GPUs running on latedays.</p>
+            <p>TODO: insert powerpoint or at least some of the slides for reference</p>
+            <p>We broke down the image compression into a sequential set of steps and parallelized over each of these steps, synchronizing in between. Because our problem is so easily parallelizeable in many dimensions, the hard part of our project was ensuring that we didn't spawn too many threads at any given time. We didn't exactly change the algorithm from that used in the sequential implementation, but we did change the data and control flow of the algorithm a bit. For instance, we determine the distances between all Range Block and Codebook Element parings, then go back and see which pairing was the best match for any given Range Block. In a sequential implementation, this could be done in one step, rather than two.</p> 
+            <p>APPROACH. Tell us how your implementation works. Your description should be sufficiently detailed to provide the course staff a basic understanding of your approach. Again, it might be very useful to include a figure here illustrating components of the system and/or their mapping to parallel hardware.
+
+Describe the technologies used. What language/APIs? What machines did you target?
+Describe how you mapped the problem to your target parallel machine(s). IMPORTANT: How do the data structures and operations you described in part 2 map to machine concepts like cores and threads. (or warps, thread blocks, gangs, etc.)
+Did you change the original serial algorithm to enable better mapping to a parallel machine?
+If your project involved many iterations of optimization, please describe this process as well. What did you try that did not work? How did you arrive at your solution? The notes you've been writing throughout your project should be helpful here. Convince us you worked hard to arrive at a good solution.
+If you started with an existing piece of code, please mention it (and where it came from) here.</p>
+        </div>
+
+                <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">Results
+            </h2>
+            <p class="lead">TODO:</p>
+            <p> We measured performance by speedup as compared to sequential execution (derived from wall-clock time). Our baseline is a single-threaded, un-optimized CPU implementation. Our input was limited to 512x512 images, with domain and range block size pairings of (32, 16), (16,8), (64,32). </p>
+
+            <p>The size of the input image, combined with the size of the domain and range blocks, have a huge affect on the number of threads needed to execute at any given time. We believe that our current implementation will break at a certain input image size and we are looking into fixing it. We would need to limit the parallelization in some cases in order to keep under the CUDA threashold for max number of threads running at any given time. For now, we limit the analysis to 512x512 images.</p>
+            <p>TODO: talk about speedup and put in graphs and stuff</p>
+            <p>We believe that a CUDA, GPU based solution was the right choice to use for this problem.</p>
+            <p>RESULTS. How successful were you at achieving your goals? We expect results sections to differ from project to project, but we expect your evaluation to be very thorough (your project evaluation is a great way to demonstrate you understood topics from this course). Here are a few ideas:
+
+If your project was optimizing an algorithm, please define how you measured performance. Is it wall-clock time? Speedup? An application specific rate? (e.g., moves per second, images/sec)
+Please also describe your experimental setup. What were the size of the inputs? How were requests generated?
+Provide graphs of speedup or execute time. Please precisely define the configurations being compared. Is your baseline single-threaded CPU code? It is an optimized parallel implementation for a single CPU?
+Recall the importance of problem size. Is it important to report results for different problem sizes for your project? Do different workloads exhibit different execution behavior?
+IMPORTANT: What limited your speedup? Is it a lack of parallelism? (dependencies) Communication or synchronization overhead? Data transfer (memory-bound or bus transfer bound). Poor SIMD utilization due to divergence? As you try and answer these questions, we strongly prefer that you provide data and measurements to support your conclusions. If you are merely speculating, please state this explicitly. Performing a solid analysis of your implementation is a good way to pick up credit even if your optimization efforts did not yield the performance you were hoping for.
+Deeper analysis: Can you break execution time of your algorithm into a number of distinct components. What percentage of time is spent in each region? Where is there room to improve?
+Was your choice of machine target sound? (If you chose a GPU, would a CPU have been a better choice? Or vice versa.)
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="featurette" >
+            <h2 class="featurette-heading">References
+            <p class="lead">TODO:</p>
+        </div>
+
+        <hr class="featurette-divider">
+
+
+ <!-- Third Featurette -->
         <div class="featurette" >
             <h2 class="featurette-heading">The Challenge
             </h2>
-            <p class="lead">While most of the base algorithm described has clear parallelism, there are still several unanswered questions. For instance, when computing the codebook, there are several way we could attack the problem. One way is to only parallelize across domain blocks, having a single CUDA thread compute all 8 transformations for the block. Another way is to use a CUDA thread for each block-transformation pair. While this is more parallelized, it also requires half of the transformation threads to redundantly compute the mirror of the block. A final approach could be to still parallelize across blocks and transformations but use shared memory to reduce the redundant calculations.</p>
+            <p>While most of the base algorithm described has clear parallelism, there are still several unanswered questions. For instance, when computing the codebook, there are several way we could attack the problem. One way is to only parallelize across domain blocks, having a single CUDA thread compute all 8 transformations for the block. Another way is to use a CUDA thread for each block-transformation pair. While this is more parallelized, it also requires half of the transformation threads to redundantly compute the mirror of the block. A final approach could be to still parallelize across blocks and transformations but use shared memory to reduce the redundant calculations.</p>
 
-            <p class="lead">Other challenges include determining how to parallelize the determination of the best codebook element for each range block. Again, there are multiple possible dimensions to parallelize across, each with their own tradeoffs.</p>
+            <p>Other challenges include determining how to parallelize the determination of the best codebook element for each range block. Again, there are multiple possible dimensions to parallelize across, each with their own tradeoffs.</p>
         </div>
 
         <hr class="featurette-divider">
@@ -125,9 +174,9 @@
         <div class="featurette" >
             <h2 class="featurette-heading">Resources
             </h2>
-            <p class="lead">For our project, we plan to start both the sequential and the CUDA implementations from scratch, though we both have some experience with the algorithm from a math class. Additionally, there are several papers about fractal image compression available on the internet.</p>
+            <p>For our project, we plan to start both the sequential and the CUDA implementations from scratch, though we both have some experience with the algorithm from a math class. Additionally, there are several papers about fractal image compression available on the internet.</p>
 
-            <p class="lead">We plan to use either the GTX 780 GPUs in the GHC clusters, or one of the more powerful GPUs in the latedays cluster for our project.<p>
+            <p>We plan to use either the GTX 780 GPUs in the GHC clusters, or one of the more powerful GPUs in the latedays cluster for our project.<p>
         </div>
 
         <hr class="featurette-divider">
@@ -136,7 +185,7 @@
             <h2 class="featurette-heading">Goals and Deliverables
             </h2>
             <p class="lead">Goals:</p>
-            <ul class="lead">
+            <ul>
                 <li> Sequential fractal image compression for greyscale images
                 </li>
                 <li>Sequential fractal image decompression for greyscale images
@@ -145,14 +194,13 @@
                 </li>
             </ul>
             <p class="lead">Stretch Goals:</p>
-            <ul class="lead">
+            <ul>
                 <li>Sequential/CUDA fractal image compression for color images
                 </li>
                 <li>Codebook pruning (see background section)
                 </li>
             </ul>
-
-            <p class="lead">For our demo we plan to show analysis of our CUDA implementation versus the sequential version. This would include speedups for different image, range block, and domain block sizes. Additionally, if the implementation is fast enough, we could compress images taken at the demo, and show the decompression iterations (similar to the monkeys above).</p>
+            <p>For our demo we plan to show analysis of our CUDA implementation versus the sequential version. This would include speedups for different image, range block, and domain block sizes. Additionally, if the implementation is fast enough, we could compress images taken at the demo, and show the decompression iterations (similar to the monkeys above).</p>
         </div>
 
         <hr class="featurette-divider">
@@ -160,16 +208,18 @@
         <div class="featurette" >
             <h2 class="featurette-heading">Platform Choice
             </h2>
-            <p class="lead">We believe GPUs are the correct platform for our project because many steps of our problem can be broken down into a very large number of independent pieces, which suits GPU architectures well.</p>
+            <p>We believe GPUs are the correct platform for our project because many steps of our problem can be broken down into a very large number of independent pieces, which suits GPU architectures well.</p>
         </div>
 
         <hr class="featurette-divider">
 
+
         <div class="featurette" >
             <h2 class="featurette-heading">Schedule
             </h2>
+            <p>equal work was performed by both project members.</p>
             <p class="lead">Week of April 4th:</p>
-            <ul class="lead">
+            <ul>
                 <li>Define our compressed file format <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/docs/CompressedFileFormatSpec.md" target="_blank">DONE! (link)</a></li>
                 <li>Decide on input/output file format (pre/post compression/decompression). We chose PPM. <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/images/lena_color_ASCII.ppm" target="_blank">DONE! (link)</a></li>
                 <li>Setup git repo <a href="https://github.com/critcher/CudaFractalImageCompression" target="_blank">DONE! (link)</a></li>
@@ -177,26 +227,26 @@
                 <li>Setup benchmarking and testing harness modelled off of Assignment 2 structure <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/benchmark.cpp" target="_blank">DONE! (link)</a></li>
             </ul>
             <p class="lead">Week of April 11th:</p>
-            <ul class="lead">
+            <ul>
                 <li>PPM Image reader <a href="https://github.com/critcher/CudaFractalImageCompression/blob/master/src/ppm.cpp" target="_blank">DONE! (link)</a></li>
                 <li>Fix PPM Image writer from Assignment 2 <a href="https://github.com/critcher/CudaFractalImageCompression/commit/4de6aa249697b9d5747bcc7af9e030109235415e" target="_blank">DONE! (link)</a></li>
                 <li>Sequential resize of image <a href="https://github.com/critcher/CudaFractalImageCompression/commit/fd469c14af665035dbaad62922ec57700fa85069" target="_blank">DONE! (link)</a></li>
                 <li>Sequential codebook generation <a href="https://github.com/critcher/CudaFractalImageCompression/commit/ea608cf2be69a355cf3d5b15297ed01632a2eb5b" target="_blank">DONE! (link)</a></li>
             </ul>
             <p class="lead">Week of April 18th:</p>
-            <ul class="lead">
+            <ul>
                 <li>Sequential transformation choosing (Clayton)</li> 
                 <li>Sequential decompression (Nora)</li>
                 <li>CUDA resize of image (Clayton)</li>
                 <li>CUDA codebook generation (Nora)</li>
             </ul>
             <p class="lead">Week of April 25th:</p>
-            <ul class="lead">
+            <ul>
                 <li>CUDA transformation choosing (Nora)</li>
                 <li>Begin analysis (Clayton)</li>
             </ul>
             <p class="lead">Week of May 2nd:</p>
-            <ul class="lead">
+            <ul>
                 <li>Finish analysis (Clayton)</li>
                 <li>Padding/Stretch goals (Both)</li>
             </ul>
